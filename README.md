@@ -1,2 +1,5 @@
-# algorithms
-DIM Algorithm in Java
+# Algorithms
+> Venkata Bhattaram
+
+## DGIM
+* Implementation of DGIM algorithm in JAVA
