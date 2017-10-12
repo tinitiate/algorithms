@@ -19,7 +19,7 @@ public class StreamReader extends Socket {
     //  will be stored to the bitstream string field.
     public boolean RecordStreamFlg;
     // This field will store the bitstreamData 
-    public String BitStreamData;
+    public String BitStreamData = "";
 
     // Method to set the status of recordStreamFlg
     public void setRecordStreamFlg(boolean RecordStreamFlg) {
@@ -28,7 +28,7 @@ public class StreamReader extends Socket {
     
     // Method to return the "bitstreamData" 
     public String getBitStreamData() {
-        return BitStreamData;
+        return this.BitStreamData;
     }
 
     public void ReadStream() throws UnknownHostException, IOException {
@@ -36,11 +36,15 @@ public class StreamReader extends Socket {
         Socket s = new Socket(hostName, port); // constructor call to the Socket Class
         BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
 
+        // Keep reading the server    
+        System.out.println("Connected to Host and running ReadStream");
+        // System.out.println("RecordStreamFlg status " + RecordStreamFlg);
         while(true) {
+            // System.out.println("RecordStreamFlg status " + RecordStreamFlg);
             String bitData = br.readLine();
             if (RecordStreamFlg) {
                 BitStreamData = BitStreamData + bitData;
-                System.out.println(bitData);
+                System.out.println(BitStreamData);
             }
         }
     }

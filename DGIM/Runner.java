@@ -19,47 +19,119 @@ import java.util.Scanner;
 public class Runner extends Thread {
 
     public boolean CommStreamRecordFlag;
-    public String hostName;
-    public int port;
+    public String DATA;
+    public int N;
+    public StreamReader BGObj;
+
+    public boolean getCommStreamRecordFlag() { return this.CommStreamRecordFlag; };
+    
+    public void setCommStreamRecordFlag(boolean CommStreamRecordFlag) {
+        this.CommStreamRecordFlag = CommStreamRecordFlag;
+    }
+
+    // Create StreamReader Object
+    // Single object for all the runs
+    public Runner(String hostName, int port) {
+        BGObj = new StreamReader(hostName, port);    
+    }
+    
     
     // This method keeps on reading the Stream Thread 
-    synchronized void ReadStreamThread() throws IOException {
+    public void ReadStreamThread() throws IOException {
 
-        boolean isRunning = true;
+        // System.out.println("CommStreamRecordFlag is true");
+        BGObj.setRecordStreamFlg(getCommStreamRecordFlag());
         
-        // Create StreamReader Object
-        // This will keep reading the BitStream
+        // System.out.println("ReadStreamThread Status of getCommStreamRecordFlag() " + String.valueOf(getCommStreamRecordFlag()));
         
-        StreamReader BGObj = new StreamReader(this.hostName, this.port);
+        
+        // Wait till the "BitStreamData" string is == N length
+        while(BGObj.getBitStreamData().length() <= N) {
+            // System.out.println("RecordStreamFlg status " + BGObj.RecordStreamFlg);
+            System.out.println("Current DATA length: " + BGObj.getBitStreamData().length());
+            // System.out.println("Current DATA: " + BGObj.getBitStreamData());
 
-        while (true) {
-            if (isRunning) {
-                // Background object started running
-                System.out.println("BitStream Reading Thread Started !!");
-                BGObj.setRecordStreamFlg(true);
-                isRunning = false;
-            }
-            else if (true) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) { e.printStackTrace(); }
-            }
+            // Wait for 1 sec until the BitStreamData appended is equal to N
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) { e.printStackTrace(); }
         }
+        BGObj.setRecordStreamFlg(false);
+        DATA = BGObj.getBitStreamData(); 
+        setCommStreamRecordFlag(false);
     }
 
 
-    // Main Class
-    public static void main(String[] args) {
+    public void run() {
+        try {
+            System.out.println("BitStream Reading Thread Started !!");
+            BGObj.ReadStream();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
-        Runner Obj = new Runner();
-        int N;
-        int K;
-        String DATA ="1111000110001011010010110011001000111110010100011100111100000011111110010101010101010101010110101010101011010101000011110000110101000110110110101001011110101000000011101101110110001010010000101000110000110101011111010001011001011011100101110000100000010010110010111011100";
+    
+    // Main Class
+    public static void main(String[] args) throws IOException {
+
+
+
+        // Step 1.
+        // Create the Runner Object
+        // Read from Class commandline Arguments for HostName and Port to lister for bitstream data
+        // Runner Obj = new Runner(args[0], args[1]);
+        Runner Obj = new Runner("localhost",9090);
+        
+        // Step 2.
+        // Read Values of N and K from user input
+        Scanner scanN = new Scanner(System.in);
+        Scanner scanK = new Scanner(System.in);
+
+        System.out.println("Enter value of N:");
+        Obj.N = Integer.parseInt(scanN.nextLine());
+        System.out.println("Enter value of K:");
+        int K = Integer.parseInt(scanK.nextLine());
+
+        
+        // Step 3.
+        // Initialize
+        // Set CommStreamRecordFlag to False
+        Obj.setCommStreamRecordFlag(false);
+        
+        // Start the Thread to read bit stream data
+        Obj.start();
+
+        // wait for Three Seconds to make sure thread start timing doesnt interfere with calculation
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) { e.printStackTrace(); }
+
+        // Start Data Stream recording
+        Obj.setCommStreamRecordFlag(true);
+
+        // Read the Data from the Thread
+        Obj.ReadStreamThread();
+
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) { e.printStackTrace(); }
+
+        System.out.println("Data: " + Obj.DATA);
+        
+        // Step 4
+        // Run the DGIM
+        DGIM dObj = new DGIM(Obj.N, K, Obj.DATA);
+        System.out.println("Count of 1s: " + dObj.OneCount);
+        
+        // String DATA ="1111000110001011010010110011001000111110010100011100111100000011111110010101010101010101010110101010101011010101000011110000110101000110110110101001011110101000000011101101110110001010010000101000110000110101011111010001011001011011100101110000100000010010110010111011100";
         
         // Read from Arguments
         //Obj.hostName = args[0];
         //Obj.port = Integer.parseInt(args[1]);
 
+        /*
         Scanner scanN = new Scanner(System.in);
         Scanner scanK = new Scanner(System.in);
 
@@ -73,6 +145,6 @@ public class Runner extends Thread {
         // Start Reading the input stream
 
         // Accept User inputs for N and K
-
+        */
     }
 }
