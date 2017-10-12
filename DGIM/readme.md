@@ -1,0 +1,4 @@
+# DGIM Algorithm
+> Venkata Bhattaram
+
+## 
